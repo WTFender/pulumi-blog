@@ -1,7 +1,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as synced_folder from "@pulumi/synced-folder";
-import { CreateCert } from "./helpers"
+import { CreateCert } from "./cert"
 
 
 // Import the program's configuration settings.
@@ -14,11 +14,11 @@ const indexDocument = config.get("indexDocument") || "index.html";
 const errorDocument = config.get("errorDocument") || "error.html";
 
 // Create an S3 bucket
-const bucket = new aws.s3.Bucket("wtfender-static");
+const bucket = new aws.s3.Bucket(domainName);
 
 // Create origin permissions
-const oai = new aws.cloudfront.OriginAccessIdentity("blog-s3", {
-    comment: "blog cdn s3 permissions",
+const oai = new aws.cloudfront.OriginAccessIdentity("cdn-s3", {
+    comment: "cdn s3 permissions",
 });
 
 // Restrict bucket to cloudfront
@@ -33,7 +33,7 @@ const iamPolicy = aws.iam.getPolicyDocumentOutput({
     }],
 });
 
-const bucketPolicy = new aws.s3.BucketPolicy("pol-blog-s3", {
+const bucketPolicy = new aws.s3.BucketPolicy("pol-cdn-s3", {
     bucket: bucket.id,
     policy: iamPolicy.json,
 });
@@ -45,10 +45,11 @@ const bucketFolder = new synced_folder.S3BucketFolder("/", {
     acl: "private",
 });
 
+// Create Certificate and validation
 const cert = CreateCert(domainName, altDomainNames.split(','), dnsZoneId, true)
 
 // Create CloudFront CDN
-const cdn = new aws.cloudfront.Distribution("wtfender-static", {
+const cdn = new aws.cloudfront.Distribution(domainName, {
     enabled: true,
     aliases: [domainName].concat(altDomainNames.split(',')),
     origins: [{

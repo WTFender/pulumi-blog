@@ -1,0 +1,27 @@
+name: Deploy latest
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+#    env:
+#      AWS_REGION: us-east-1    
+#      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+#      DISTRIBUTION_ID: ${{ secrets.DISTRIBUTION_ID }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Download latest release
+      uses: robinraju/release-downloader@v1.5
+      with:
+        repository: "WTFender/blog.wtfender.com"
+        latest: true
+        fileName: "public.tar.gz"
