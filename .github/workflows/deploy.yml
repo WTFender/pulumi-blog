@@ -1,9 +1,6 @@
 name: Deploy latest
 
-on:
-  push:
-    branches:
-    - main
+on: workflow_dispatch:
 
 jobs:
   deploy:
@@ -25,4 +22,6 @@ jobs:
         repository: WTFender/blog.wtfender.com     
 
     - name: Extract Archive
-      run: tar -xzvf public.tar.gz 
+      run: |
+        tar -xzvf public.tar.gz
+        ls -lh public
